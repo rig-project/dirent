@@ -247,10 +247,17 @@ struct _WDIR {
 };
 typedef struct _WDIR _WDIR;
 
-static _WDIR *_wopendir (const wchar_t *dirname);
-static struct _wdirent *_wreaddir (_WDIR *dirp);
-static int _wclosedir (_WDIR *dirp);
-static void _wrewinddir (_WDIR* dirp);
+/* Suppress warnings about unused functions */
+#if defined(__clang__) || defined(__GNUC__)
+#define ALLOW_UNUSED __attribute__((unused))
+#else
+#define ALLOW_UNUSED
+#endif
+
+static _WDIR *_wopendir (const wchar_t *dirname) ALLOW_UNUSED;
+static struct _wdirent *_wreaddir (_WDIR *dirp) ALLOW_UNUSED;
+static int _wclosedir (_WDIR *dirp) ALLOW_UNUSED;
+static void _wrewinddir (_WDIR* dirp) ALLOW_UNUSED;
 
 
 /* For compatibility with Symbian */
@@ -287,10 +294,10 @@ struct DIR {
 };
 typedef struct DIR DIR;
 
-static DIR *opendir (const char *dirname);
-static struct dirent *readdir (DIR *dirp);
-static int closedir (DIR *dirp);
-static void rewinddir (DIR* dirp);
+static DIR *opendir (const char *dirname) ALLOW_UNUSED;
+static struct dirent *readdir (DIR *dirp) ALLOW_UNUSED;
+static int closedir (DIR *dirp) ALLOW_UNUSED;
+static void rewinddir (DIR* dirp) ALLOW_UNUSED;
 
 
 /* Internal utility functions */
