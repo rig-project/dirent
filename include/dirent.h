@@ -296,6 +296,7 @@ typedef struct DIR DIR;
 
 static DIR *opendir (const char *dirname) ALLOW_UNUSED;
 static struct dirent *readdir (DIR *dirp) ALLOW_UNUSED;
+static int readdir_r (DIR *dirp, struct dirent *entry, struct dirent **result) ALLOW_UNUSED;
 static int closedir (DIR *dirp) ALLOW_UNUSED;
 static void rewinddir (DIR* dirp) ALLOW_UNUSED;
 
@@ -686,12 +687,13 @@ opendir(
  * ANSI strings to the console code page so many non-ASCII characters will
  * display correcly.
  */
-static struct dirent*
-readdir(
-    DIR *dirp) 
+static int
+readdir_r(
+    DIR *dirp,
+    struct dirent *entp,
+    struct dirent **result)
 {
     WIN32_FIND_DATAW *datap;
-    struct dirent *entp;
 
     /* Read next directory entry */
     datap = dirent_next (dirp->wdirp);
@@ -722,9 +724,6 @@ readdir(
         if (!error) {
             DWORD attr;
 
-            /* Initialize directory entry for return */
-            entp = &dirp->ent;
-
             /* Length of file name excluding zero terminator */
             entp->d_namlen = n - 1;
 
@@ -749,7 +748,6 @@ readdir(
              * we cannot return NULL as that would stop the processing
              * of directory entries completely.
              */
-            entp = &dirp->ent;
             entp->d_name[0] = '?';
             entp->d_name[1] = '\0';
             entp->d_namlen = 1;
@@ -758,12 +756,25 @@ readdir(
             entp->d_reclen = 0;
         }
 
+        *result = entp;
     } else {
         /* No more directory entries */
-        entp = NULL;
+        *result = NULL;
     }
 
-    return entp;
+    return 0;
+}
+
+static struct dirent*
+readdir(
+    DIR *dirp)
+{
+    struct dirent *ret = NULL;
+    int err = readdir_r(dirp, &dirp->ent, &ret);
+    if (err)
+        dirent_set_errno(err);
+
+    return ret;
 }
 
 /*
